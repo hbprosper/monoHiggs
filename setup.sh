@@ -1,0 +1,9 @@
+export PATH=$PWD/bin:$PATH
+export DELPHES=$HOME/external/delphes
+export PYTHIA=$HOME/external
+export DYLD_LIBRARY_PATH=$PYTHIA/lib
+export LD_LIBRARY_PATH=$DELPHES:$PYTHIA/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$PWD/python:$PYTHONPATH
+
+
