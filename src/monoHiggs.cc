@@ -132,7 +132,7 @@ void monoHiggs::analysis4mu(string inputFile,
   gStyle->SetOptFit(1111);
 
   cout << endl << "=> initialize histograms" << endl;
-  TH1D *h_nEvent = new TH1D("h_nEvent", "Delphes Eff vs cut", 12, -1, 11);
+  TH1D *h_nEvent = new TH1D("h_nEvent", "Delphes Eff vs cut", 11, -1, 10);
   TH1F *weight = new TH1F("weight","weight",11,-1,10);
 
   // histogram for isolation cuts
