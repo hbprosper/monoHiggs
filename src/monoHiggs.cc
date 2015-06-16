@@ -339,7 +339,7 @@ void monoHiggs::analysis4mu(string inputFile,
     if ( !(Ln > 3) )  continue;
     // Note: bin 3 (value 1) counts the weighted number of
     // good isolated muons.
-    h_nEvent->Fill(1.0, smweight);
+    h_nEvent->Fill(0.0, smweight);
     
     // find all opposite sign di-leptons
     vector<DiLepton> dilepton;
@@ -365,7 +365,7 @@ void monoHiggs::analysis4mu(string inputFile,
     // CUT 3: number of dileptons > 0
     // ----------------------------------------------------------
     if ( !(dilepton.size() > 0) )  continue;
-    h_nEvent->Fill(2.0, smweight);
+    h_nEvent->Fill(1.0, smweight);
 
     // find Z candidate closest to Z pole mass
     int indexZ1 = 0;
@@ -390,13 +390,13 @@ void monoHiggs::analysis4mu(string inputFile,
     // ----------------------------------------------------------
     if( !(Z1.M() > 40) )   continue;
     if( !(Z1.M() < 120) )  continue;
-    h_nEvent->Fill(3.0, smweight);
+    h_nEvent->Fill(2.0, smweight);
 
     // ----------------------------------------------------------
     // CUT 5: number of potential Z candidates > 1
     // ----------------------------------------------------------
     if( !( dilepton.size() > 1) )  continue;
-    h_nEvent->Fill(4.0, smweight);    
+    h_nEvent->Fill(3.0, smweight);    
 
     // this will be true if we have di-Z event
     bool diZevent = false;
@@ -424,14 +424,14 @@ void monoHiggs::analysis4mu(string inputFile,
     // CUT 6: number of di-Z bosons == 1
     // ----------------------------------------------------------
     if( ! diZevent )  continue;
-    h_nEvent->Fill(5.0, smweight);
+    h_nEvent->Fill(4.0, smweight);
     
     // ----------------------------------------------------------
     // CUT 7: 12 < Z2mass < 120
     // ----------------------------------------------------------
     if( !(Z2.M() >  12) ) continue;
     if( !(Z2.M() < 120) ) continue;
-    h_nEvent->Fill(6.0, smweight);    
+    h_nEvent->Fill(5.0, smweight);    
     
     // We now have a di-Z event
     std::cout << " event " << entry
@@ -453,13 +453,13 @@ void monoHiggs::analysis4mu(string inputFile,
     // CUT 8: LPT1 > 20 GeV
     // ----------------------------------------------------------
     if ( !(LPT1 > 20) ) continue;
-    h_nEvent->Fill(7.0, smweight);
+    h_nEvent->Fill(6.0, smweight);
     
     // ----------------------------------------------------------
     // CUT 9: LPT2 >10 GeV
     // ----------------------------------------------------------    
     if ( !(LPT2 > 10) ) continue;
-    h_nEvent->Fill(8.0, smweight);
+    h_nEvent->Fill(7.0, smweight);
     
     // compute 4-lepton 4-vector
     H = Z1 + Z2;
@@ -468,7 +468,7 @@ void monoHiggs::analysis4mu(string inputFile,
     // CUT 10: m4l > 100 GeV
     // ----------------------------------------------------------    
     if ( !( H.M() > 100) ) continue;
-    h_nEvent->Fill(9.0, smweight);
+    h_nEvent->Fill(8.0, smweight);
     
     Z1mass->Fill(Z1.M(), smweight);
     Z2mass->Fill(Z2.M(), smweight);
@@ -570,16 +570,15 @@ void monoHiggs::analysis4mu(string inputFile,
      h_nEvent1->SetLineColor(3);
      
      h_nEvent1->GetXaxis()->SetBinLabel(1,"N events");
-     h_nEvent1->GetXaxis()->SetBinLabel(2,"n(lepton) #ge 4");
-     h_nEvent1->GetXaxis()->SetBinLabel(3,"n(dilepton) > 0");
-     h_nEvent1->GetXaxis()->SetBinLabel(4,"Z1 (1 SFOS pair)");
-     h_nEvent1->GetXaxis()->SetBinLabel(5,"Z1 mass cut");
-     h_nEvent1->GetXaxis()->SetBinLabel(6,"Z2 (+1 SFOS pair)");
-     h_nEvent1->GetXaxis()->SetBinLabel(7,"Z2 mass cut");
-     h_nEvent1->GetXaxis()->SetBinLabel(8,"pT(l) > 10,20 GeV");
-     h_nEvent1->GetXaxis()->SetBinLabel(9,"M(ll) > 4 GeV (QCD)");
-     h_nEvent1->GetXaxis()->SetBinLabel(10,"M(Z2) > 12 GeV");
-     h_nEvent1->GetXaxis()->SetBinLabel(11,"M(4l) > 100 GeV");
+     h_nEvent1->GetXaxis()->SetBinLabel(2,"n(isolepton) #ge 4");
+     h_nEvent1->GetXaxis()->SetBinLabel(3,"n(dilepton) #ge 1");
+     h_nEvent1->GetXaxis()->SetBinLabel(4,"40 < Z1(1 SFOS pair)  < 120");
+     h_nEvent1->GetXaxis()->SetBinLabel(5,"n(dilepton) #ge 2");
+     h_nEvent1->GetXaxis()->SetBinLabel(6,"diZevent");
+     h_nEvent1->GetXaxis()->SetBinLabel(7,"12 < Z2(+1 SFOS pair)  < 120");
+     h_nEvent1->GetXaxis()->SetBinLabel(8,"pT(l1) > 20 GeV");
+     h_nEvent1->GetXaxis()->SetBinLabel(9,"pT(l2) > 10 GeV");
+     h_nEvent1->GetXaxis()->SetBinLabel(10,"M(ll) > 100 GeV (QCD)");
      
      cuts->cd(); 
      h_nEvent1->SetMinimum(0.0);
