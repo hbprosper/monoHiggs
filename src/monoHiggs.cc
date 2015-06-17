@@ -73,11 +73,11 @@ void monoHiggs::analysis(string inputFile,
   const int k2E2MU = 3;
   
   int finalState = 0;
-  if      ( prefix_.find("4mu") != prefix_.end() )
+  if      ( prefix_.find("4mu") != std::string::npos )
     finalState = k4MU;
-  else if ( prefix_.find("4e")  != prefix_.end() )
+  else if ( prefix_.find("4e")  != std::string::npos )
     finalState = k4E;
-  else if ( prefix_.find("2e2mu") != prefix_.end() )
+  else if ( prefix_.find("2e2mu") != std::string::npos )
     finalState = k2E2MU;
   else
     nic::ciao("unrecognized final state (4mu, 4e, or 2e2mu)");
