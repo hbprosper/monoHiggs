@@ -18,7 +18,8 @@ $(shell mkdir -p lib; mkdir -p tmp)
 
 # get lists of sources
 
-SRCS	:= 	$(srcdir)/monoHiggs.cc
+SRCS	:= 	$(srcdir)/monoHiggs.cc \
+		$(srcdir)/nic.cc
 
 CINTSRCS:= $(wildcard $(srcdir)/*_dict.cc)
 
