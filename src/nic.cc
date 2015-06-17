@@ -64,7 +64,7 @@ double nic::leptonIsolation(double PT, double Eta, double Phi,
 	    if ( !(dR < dRcut) ) continue;
 	    sumTowerPt += tower->ET;
 	  }
-	isolation = (sumTrackPt + sumTowerPt) / PT;
+	isolation = sumTrackPt + sumTowerPt;
 	
 	// correct for pile-up by subtracting the event-by-event
 	// average transverse momentum due to pileup.
@@ -72,6 +72,9 @@ double nic::leptonIsolation(double PT, double Eta, double Phi,
 	double rho = static_cast<Rho*>(rhos->At(0))->Rho;
 	double pileupOffset = rho * dRMax*dRMax*M_PI;
 	isolation -= pileupOffset;
+
+	// now "normalize" 
+	isolation /= PT;
       }
       break;
     default:
