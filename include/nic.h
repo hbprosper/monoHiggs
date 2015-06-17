@@ -32,10 +32,21 @@ struct nic
   static double deltaPhi(double phi1, double phi2);
   ///
   static double deltaR(double eta1, double phi1, double eta2, double phi2);
-  ///
-  static double leptonIsolation(SortableObject* p,
+  /** Cone-based isolation variable.
+     isoType
+     1         CMS muon isolation
+     2         CMS electron isolation
+     3         CMS photon isolation
+     
+     11        ATLAS muon isolation
+     12        ATLAS electron isolation
+     13        ATLAS photon isolation
+   */
+  static double leptonIsolation(double pt, double eta, double phi,
 				TClonesArray* tracks,
-				TClonesArray* towers);
+				TClonesArray* towers,
+				TClonesArray* rho,
+				int isoType=1);
 };
 
 #endif

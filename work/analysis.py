@@ -7,16 +7,23 @@ def main():
     gSystem.Load("libmonohiggs")
     from ROOT import monoHiggs
     
-    inputFile = sys.argv[1] #"Higgs_hhxx_scalar_nohdecay_1GeV_13TeV.lhe_4leptons_CMS.root"
-    prefix  = sys.argv[2] #"hzz4leptons"
+    inputFile = sys.argv[1] 
+    prefix  = sys.argv[2] 
     pileup  = 50
-    nevents = int(sys.argv[3]) #10
-    monoHiggs.analysis4mu(inputFile, prefix, pileup, nevents)
+    nevents = int(sys.argv[3])
+    monoHiggs.analysis(inputFile, prefix, pileup, nevents)
     
 # ---------------------------------------------------------------------------
 try:
     if len(sys.argv) != 4:
-        exit("Usage: ./analyis.py [.root file] [prefix] [nevents]")
+        exit('''
+    Usage: ./analyis.py [.root file] [prefix] [nevents]
+        
+        Note: the prefix must identify the final state (4mu, 4e, or 2e2mu)
+        and the sample type (e.g., sig or bkg). It will be used as the
+        prefix for the name of the root output file containing histograms.
+
+        example: prefix = sig_4mu''')
 
     main()
 except KeyboardInterrupt:

@@ -5,9 +5,9 @@
 
 struct monoHiggs
 {
-  static void analysis4mu(std::string inputFile,
-			  std::string prefix,
-			  int pileup,
-			  int numberEvents=-1);
+  static void analysis(std::string inputFile,
+		       std::string prefix,
+		       int pileup,
+		       int numberEvents=-1);
 };
 #endif

@@ -15,13 +15,69 @@
 
 using namespace std;
 
-// simple
-
-double nic::leptonIsolation(SortableObject* /** p */,
-			    TClonesArray* /** tracks */,
-			    TClonesArray* /** towers */)
+double nic::leptonIsolation(double PT, double Eta, double Phi,
+			    TClonesArray* tracks,
+			    TClonesArray* towers,
+			    TClonesArray* rhos,
+			    int isoType)
 {
-  return 0.0;
+  if ( tracks == 0 ) return 0;
+  if ( towers == 0 ) return 0;
+  if ( rhos   == 0 ) return 0;
+
+  // isoType
+  // 1         CMS muon isolation
+  // 2         CMS electron isolation
+  // 3         CMS photon isolation
+  //
+  // 11        ATLAS muon isolation
+  // 12        ATLAS electron isolation
+  // 13        ATLAS photon isolation
+
+  double isolation = 0.0;
+  switch (isoType)
+    {
+    case 1:
+    case 2:
+      {
+	double dRcut=0.3;
+	double dRMax=0.5;
+	
+	int ntracks = tracks->GetEntriesFast();
+	double sumTrackPt = 0.0;
+	for(int i=0; i < ntracks; i++)
+	  {
+	    Track* track = static_cast<Track*>(tracks->At(i));
+	    double dR = nic::deltaR(Eta, Phi,
+				    track->Eta, track->Phi);
+	    if ( !(dR < dRcut) ) continue;
+	    sumTrackPt += track->PT;
+	  }
+	
+	int ntowers = towers->GetEntriesFast();
+	double sumTowerPt = 0.0;
+	for(int i=0; i < ntowers; i++)
+	  {
+	    Tower* tower = static_cast<Tower*>(towers->At(i));
+	    double dR = nic::deltaR(Eta, Phi,
+				    tower->Eta, tower->Phi);
+	    if ( !(dR < dRcut) ) continue;
+	    sumTowerPt += tower->ET;
+	  }
+	isolation = (sumTrackPt + sumTowerPt) / PT;
+	
+	// correct for pile-up by subtracting the event-by-event
+	// average transverse momentum due to pileup.
+	// use the first rho value, which is for the eta range [-2.5, 2.5]
+	double rho = static_cast<Rho*>(rhos->At(0))->Rho;
+	double pileupOffset = rho * dRMax*dRMax*M_PI;
+	isolation -= pileupOffset;
+      }
+      break;
+    default:
+      isolation = 0.0;
+    } 
+  return isolation;
 }
 
 void nic::ciao(string message)

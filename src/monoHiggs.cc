@@ -57,15 +57,52 @@ struct DiLepton
 
 // ---------------------------------------------------------------------------
 // inputFile    space delimited list of Delphes files
-// sample       e.g.: "4mu_sig" or "4mu_bkg"
+// prefix       e.g.: "sig_4mu" or "bkg_4mu"
 // pileup       mean number of pileup events
+// numberEvents obvious, no?!
 // ---------------------------------------------------------------------------
-void monoHiggs::analysis4mu(string inputFile,
-			    string prefix_,
-			    int pileup,
-			    int numberEvents){
-  cout << endl << "\t== monoHiggs::analysis4mu ==" << endl;
+void monoHiggs::analysis(string inputFile,
+			 string prefix_,
+			 int pileup,
+			 int numberEvents){
+  cout << endl << "\t== monoHiggs::analysis ==" << endl;
 
+  // get final state
+  const int k4MU   = 1;
+  const int k4E    = 2;
+  const int k2E2MU = 3;
+  
+  int finalState = 0;
+  if      ( prefix_.find("4mu") != prefix_.end() )
+    finalState = k4MU;
+  else if ( prefix_.find("4e")  != prefix_.end() )
+    finalState = k4E;
+  else if ( prefix_.find("2e2mu") != prefix_.end() )
+    finalState = k2E2MU;
+  else
+    nic::ciao("unrecognized final state (4mu, 4e, or 2e2mu)");
+  
+  // -----------------------------------------
+  // analysis switches
+  // -----------------------------------------
+  bool eff2 = false;
+  bool original = false;
+  bool efficiencies = true;
+  bool masses = true;
+  bool useEventWeight=false;
+  
+  /** Cone-based isolation variable.
+     isoType
+     1         CMS muon isolation
+     2         CMS electron isolation
+     3         CMS photon isolation
+     
+     11        ATLAS muon isolation
+     12        ATLAS electron isolation
+     13        ATLAS photon isolation
+   */  
+  int isoType = 1; 
+  
   // -----------------------------------------
   // Objects
   //  muons  - PT > 5 GeV
@@ -93,7 +130,6 @@ void monoHiggs::analysis4mu(string inputFile,
     exit(0);
   }
   
-  bool useEventWeight=false;
   char filename[256];
   char prefix[80];
   sprintf(prefix, "%s", prefix_.c_str());
@@ -124,7 +160,8 @@ void monoHiggs::analysis4mu(string inputFile,
   TClonesArray *branchEvent = treeReader->UseBranch("Event");
   TClonesArray *branchTrack = treeReader->UseBranch("Track");
   TClonesArray *branchTower = treeReader->UseBranch("Tower");
-  
+  TClonesArray *branchRho   = treeReader->UseBranch("Rho");
+
   // create empty histograms
   gStyle->SetTitleFont(22,"X_mod");
   gStyle->SetTitleFont(22,"Y");
@@ -140,9 +177,9 @@ void monoHiggs::analysis4mu(string inputFile,
   TH1F* h_isolation = new TH1F("isolation","", numIsoCuts, 1, numIsoCuts);
   for(int k=0; k < numIsoCuts; k++)
     {
-      double relisol = 0.1 + k * 0.1;
+      double detisol = 0.1 + k * 0.1;
       char label[80];
-      sprintf(label, "> %3.1f", relisol);
+      sprintf(label, "> %3.1f", detisol);
       h_isolation->GetXaxis()->SetBinLabel(k+1, label);
     }
   
@@ -191,10 +228,6 @@ void monoHiggs::analysis4mu(string inputFile,
   // EVENT LOOP
   // -----------------------------------------
   cout << endl << "=> begin event loop" << endl;
-  bool eff2 = false;
-  bool original = false;
-  bool efficiencies = true;
-  bool masses = true;
   
   TLorentzVector L1;
   TLorentzVector L2;
@@ -247,10 +280,7 @@ void monoHiggs::analysis4mu(string inputFile,
     // 1. first bin of h_nEvent (with value -1) contains the total
     // event weight
     // 2. all bins of weight contains total count if count > 3
-    if( count > 3 ) { 
-      h_nEvent->Fill(-1.0, smweight);
-      for(int k = -1; k < 10; k++) weight->Fill(k);
-    }		
+    h_nEvent->Fill(-1.0, smweight);
      
     // compare reco and gen level muons and, in particular, histogram
     // the muon deltapT / pT, where deltapT = muon-pT - pT and pT is
@@ -326,8 +356,14 @@ void monoHiggs::analysis4mu(string inputFile,
     int Ln = 0;
     for(int k = 0; k < Ln1; k++){
       Muon* muon = (Muon*) branchMuon->At(index1[k]);	
-      double relisol = nic::leptonIsolation(muon, branchTrack, branchTower); 
-      if( relisol < 0.4 ){
+      double detisol = nic::leptonIsolation(muon->PT,
+					    muon->Eta,
+					    muon->Phi,
+					    branchTrack,
+					    branchTower,
+					    branchRho,
+					    isoType); 
+      if( detisol < 0.4 ){
 	index[Ln] = index1[k];
 	Ln++;
       }

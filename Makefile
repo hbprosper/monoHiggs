@@ -81,7 +81,7 @@ $(OBJECTS)	: %.o	: 	%.cc
 $(DICTIONARIES)	: $(srcdir)/%_dict.cc	: $(incdir)/%.h
 	@echo ""
 	@echo "=> Building dictionary $@"
-	$(ROOTCINT)	-f $@ -c $(CPPFLAGS) $^
+	$(ROOTCINT) -f $@ -c $(CPPFLAGS) $^
 	find $(srcdir) -name "*.pcm" -exec mv {} $(libdir) \;
 
 tidy:
