@@ -4,6 +4,7 @@
 // ---------------------------------------------------------------------------
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <string>
 
@@ -149,7 +150,7 @@ bool foundLepton(int finalState, int ID)
   return found;
 }
 // ---------------------------------------------------------------------------
-// inputFile    space delimited list of Delphes files
+// inputFile    input file (with .root extension) of a filelist
 // prefix       e.g.: "sig_4mu" or "bkg_4mu"
 // pileup       mean number of pileup events
 // numberEvents obvious, no?!
@@ -222,7 +223,25 @@ void monoHiggs::analysis(string inputFile,
   // create a chain of input files
   cout << endl << "=> input files:" << endl;
   TChain* chain = new TChain("Delphes");
-  std::vector<std::string> inputFiles = nic::split(inputFile);
+
+  // inputFile could be either a root file or a filelist
+  std::vector<std::string> inputFiles;
+  if ( inputFile.find(".root") != std::string::npos )
+    inputFiles.push_back(inputFile);
+  else
+    {
+      // assume this is a filelist
+      ifstream inp(inputFile);
+      if ( !inp.good() ) nic::ciao("can't open " + inputFile);
+      string infilename;
+      while (getline(inp, infilename))
+	{
+	  if ( infilename.substr(0,1) == "#" ) continue;
+	  if ( infilename.substr(0,1) == " " ) continue;
+	  if ( infilename.substr(0,1) == "\n" ) continue;
+	  inputFiles.push_back(infilename);
+	}
+    }
   for (size_t i=0; i < inputFiles.size(); i++){
     chain->Add(inputFiles[i].c_str());
     std::cout<<"\tadded input file "<<inputFiles[i]<<std::endl;
