@@ -555,11 +555,11 @@ void monoHiggs::analysis(string inputFile,
       for(int j = k+1; j< Ln; j++){
 	TParticle& pj = lepton[index[j]];
 	
-	bool OSSF = pk.PID + pj.PID;
+	bool OSSF = (pk.PID + pj.PID)==0;
 	if ( ! OSSF ) continue;
 
 	// we have oppositely charged same flavor leptons
-	L1 = pk; // *dynamic_cast<TParticle*>(&pk);
+	L1 = pk; 
 	L2 = pj;
 
 	// QCD suppression
