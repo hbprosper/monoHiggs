@@ -1,0 +1,22 @@
+  float weight;
+  
+  float genZ1pt, genZ1eta, genZ1phi, genZ1mass;
+  float genZ2pt, genZ2eta, genZ2phi, genZ2mass;
+  float genl1pt, genl1eta, genl1phi;
+  float genl2pt, genl2eta, genl2phi;
+  float genl3pt, genl3eta, genl3phi;
+  float genl4pt, genl4eta, genl4phi;
+  
+  float Z1pt, Z1eta, Z1phi, Z1mass;
+  float Z2pt, Z2eta, Z2phi, Z2mass;
+  float l1pt, l1eta, l1phi;
+  float l2pt, l2eta, l2phi;
+  float l3pt, l3eta, l3phi;
+  float l4pt, l4eta, l4phi;
+
+  int   njets;
+  float j1pt, j1eta, j1phi, j1mass;
+  float j2pt, j2eta, j2phi, j2mass;
+  float massjj, deltaetajj, met;
+  float costhetastar, costheta1, costheta2, Phi, Phi1;
+ 

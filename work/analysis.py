@@ -11,7 +11,7 @@ def main():
     prefix  = sys.argv[2] 
     pileup  = 50
     nevents = int(sys.argv[3])
-    monoHiggs.analysis(inputFile, prefix, pileup, nevents)
+    monoHiggs.hzz4l(inputFile, prefix, pileup, nevents)
     
 # ---------------------------------------------------------------------------
 try:
@@ -23,7 +23,7 @@ try:
         and the sample type (e.g., sig or bkg). It will be used as the
         prefix for the name of the root output file containing histograms.
 
-        example: prefix = sig_4mu''')
+        example: prefix = s_4mu''')
 
     main()
 except KeyboardInterrupt:

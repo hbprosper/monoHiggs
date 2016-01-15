@@ -7,11 +7,24 @@
 // ---------------------------------------------------------------------------
 #include <string>
 #include "TClonesArray.h"
+#include "TLorentzVector.h"
 #include "classes/DelphesClasses.h"
 
 ///
 struct nic
 {
+  /// Compute decay angles from the lepton four-vectors and lepton PDG IDs.
+  static void computeMELAangles(TLorentzVector L1_Z1, int L1_Z1_PID,
+				TLorentzVector L2_Z1, int L2_Z1_PID,
+				TLorentzVector L1_Z2, int L1_Z2_PID,
+				TLorentzVector L2_Z2, int L2_Z2_PID,
+				float& costhetastar, 
+				float& costheta1, 
+				float& costheta2, 
+				float& cosPhi, 
+				float& cosPhi1);
+  ///
+  static void setStyle();
   ///
   static void ciao(std::string message);
   ///
@@ -32,6 +45,17 @@ struct nic
   static double deltaPhi(double phi1, double phi2);
   ///
   static double deltaR(double eta1, double phi1, double eta2, double phi2);
+
+  struct Match
+  {
+    Match() {}
+    ~Match() {}
+    void add(int ii, float eta1, float phi1,
+	     int jj, float eta2, float phi2);
+    void run();
+    std::vector<std::pair<float, std::pair<int, int> > > order;
+  };
+  
   /** Cone-based isolation variable.
      isoType
      1         CMS muon isolation
