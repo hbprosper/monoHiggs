@@ -22,12 +22,37 @@ HardScatter::HardScatter(TClonesArray* particles_)
 
 HardScatter::~HardScatter(){}
 
+void HardScatter::printAt(int ii)
+{
+  char record[256];
+  sprintf(record,"%4s %8s %-10s %8s %8s %8s %4s %4s %4s %4s %4s",
+	  "",   "PID", "name",
+	  "PT", "Eta", "Phi",
+	  "M1", "M2",
+	  "D1", "D2", "Stat");
+  cout << record << endl;
+  GenParticle* p = static_cast<GenParticle*>(particles->At(ii));
+  if ( p )
+    sprintf(record,"%4d %8d %-10s %8.2f %8.3f %8.3f %4d %4d %4d %4d %4d",
+	    ii, p->PID, nic::particleName(p->PID).c_str(),
+	    p->PT, p->Eta, p->Phi,
+	    p->M1, p->M2,
+	    p->D1, p->D2, p->Status);
+  else
+    sprintf(record, "\t*** no particle at position %d ***", ii); 
+  cout << record << endl;
+}
+
 void HardScatter::get(vector<LHParticle>& plist, bool debug_)
 {
+  if ( !particles ) return;
+  
   debug = debug_;
-  // find particles with two mothers,
-  // then find their status = 62 versions, then
-  // climb the decay tree
+  // first find particles with two mothers,
+  // then find their status = 62 dopelganger,
+  // then climb the decay tree, if possible.
+  // this may not be possible if the relevant
+  // daughter/mother relationship is screwed up
   for(int c=0; c < particles->GetEntriesFast(); c++)
     {
       GenParticle* p = static_cast<GenParticle*>(particles->At(c));
@@ -35,13 +60,28 @@ void HardScatter::get(vector<LHParticle>& plist, bool debug_)
       if ( p->M1 == p->M2 )  continue;
       if ( p->M1 < 0 )       continue;
       if ( p->M2 < 0 )       continue;
-
+     
       // particle has two mothers, so continue loop until
       // we find its status = 62 doppelganger
       int ID=c;
+
+      if ( debug )
+	{
+	  cout << "\t--> this particle has two mothers" << endl;
+	  printAt(ID);
+	}
+      
       findMother(p, ID);
+      if ( ID < 0 )
+	{
+	  if ( debug )
+	    cout << "\t*** can't find status=62 mother" << endl;
+	  return;
+	}
+      
       p = static_cast<GenParticle*>(particles->At(ID));
- 
+      if ( p == 0 ) return;
+
       // found mother particle with status = 62, now
       // climb decay tree
       int motherID = -1;
@@ -70,15 +110,30 @@ void
 HardScatter::findMother(GenParticle* mother, int& pos, int depth)
 {
   depth++;
-  if ( depth > 100 ) return;
+  if ( depth > 100 )
+    {
+      pos = -1; // this really shouldn't happen!
+      return;
+    }
+  if ( !mother )
+    {
+      pos = -2; // failed
+      return;
+    }
   if ( mother->Status == 62 ) return;
   
   // loop over daughters
+  if ( debug ) cout << "\t--> depth = " << depth << endl;
+  
   for(int c = mother->D1; c <= mother->D2; c++)
     {
+      printAt(c);
+      GenParticle* d = static_cast<GenParticle*>(particles->At(c));
+      if ( d == 0 ) continue;
+      
       pos = c;
-      GenParticle* d = static_cast<GenParticle*>(particles->At(pos));
-      if ( d->PID == mother->PID ) findMother(d, pos, depth);
+      if ( d->PID == mother->PID )
+	findMother(d, pos, depth);
     }
 }
   

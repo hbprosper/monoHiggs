@@ -25,6 +25,8 @@ class HardScatter
   TClonesArray* particles;
   bool debug;
 
+  void printAt(int ID);
+  
   void findMother(GenParticle* mother, int& pos, int depth=0);
   
   void climbTree(std::vector<LHParticle>& plist,

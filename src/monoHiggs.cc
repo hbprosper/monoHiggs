@@ -195,6 +195,7 @@ listParticles(TClonesArray* particles)
     }
 }
 
+
 LHParticle* 
 getZbosons(vector<LHParticle>&  particles,
 	   vector<LHParticle*>& genZ,
@@ -222,8 +223,8 @@ getZbosons(vector<LHParticle>&  particles,
 	      }
 	  }
       }
-  assert(genZ.size()>1);
-  assert(genL.size()>3);
+  //assert(genZ.size()>1);
+  //assert(genL.size()>3);
   return H;
 }
 
@@ -338,32 +339,33 @@ findDileptons(vector<LHParticle>& lepton,
 // numberEvents obvious, no?!
 // ---------------------------------------------------------------------------
 void monoHiggs::hzz4l(string inputFile,
-		      string finalstate_,
-		      int    pileup,
+		      string sample,
+		      int    numberEvents,
 		      double luminosity,
-		      int    numberEvents)
+		      double xsection,
+		      int    pileup)
 {
   cout << endl << "\t== monoHiggs::hzz4l ==" << endl;
   
   // get final state
   string namen = nic::nameonly(inputFile);
   int finalState = 0;
-  if      ( finalstate_.find("4mu")  != std::string::npos )
+  if      ( sample.find("4mu")  != std::string::npos )
     {
       finalState = k4MU;
       namen += "_4mu";
     }
-  else if ( finalstate_.find("4e")   != std::string::npos )
+  else if ( sample.find("4e")   != std::string::npos )
     {
       finalState = k4E;
       namen += "_4me";
     }
-  else if ( finalstate_.find("2e2mu")!= std::string::npos )
+  else if ( sample.find("2e2mu")!= std::string::npos )
     {
       finalState = k2E2MU;
       namen += "_2e2mu";
     }
-  else if ( finalstate_.find("all")  != std::string::npos )
+  else if ( sample.find("all")  != std::string::npos )
     {
       finalState = kALL;
       namen += "_4l";
@@ -372,7 +374,7 @@ void monoHiggs::hzz4l(string inputFile,
     nic::ciao("unrecognized final state (need 4mu, 4e, 2e2mu, or all)");
 
   // set background flag
-  bool isBackground = finalstate_.find("b") != std::string::npos;
+  bool isBackground = sample.find("b") != std::string::npos;
   if ( isBackground )
     cout << endl << "\t=> background sample" << endl;
   else
@@ -642,25 +644,7 @@ void monoHiggs::hzz4l(string inputFile,
   // https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CrossSections#
   // Higgs_cross_sections_and_decay_b
   // BR  = 1.32e-4
-  // ggF = 43620 fb  (cf 25600 fb from Pythia8)
-  // VBF =  3727 fb  (cf  3230 fb from Pythia8)
-  // But, for now, use LO cross sections.
   // -----------------------------------------
-  float xsection=1;
-  if ( isBackground )
-    {
-      xsection = 67.8;  // fb
-    }
-  else
-    {
-      //float BR = 1.32e-4; // H -> 4l (e, mu)
-      //float xsec_ggF = 43620;
-      //float xsec_VBF =  3727;
-      if ( namen.find("gg") != std::string::npos )
-	xsection = 3.21; // fb
-      else
-	xsection = 0.44; // fb
-    }
   double eventCount  = xsection * luminosity;
   double eventWeight = eventCount / numberOfEntries;
   
@@ -686,15 +670,16 @@ void monoHiggs::hzz4l(string inputFile,
   // ===> START
   // -----------------------------------------
   // -----------------------------------------
+  bool debug_hardScatter = true;
   HardScatter hardScatter(branchParticle);
   int passed = 0;
   double totalPassed = 0.0;
   int nd = 0; // number of diboson events
   
-  //numberOfEntries = 1000;
+  numberOfEntries = 2;
   
   for(Int_t entry = 0; entry < numberOfEntries; entry++){
-    bool printMe = entry % 10000 == 0;
+    bool printMe = entry % 1 == 0;
     
     if ( printMe )
       std::cout << "\t=> processing event "
@@ -703,7 +688,7 @@ void monoHiggs::hzz4l(string inputFile,
     
     //Load branches for event
     treeReader->ReadEntry(entry);
-
+    
     // get event weight
     double smweight = eventWeight;
     if ( useEventWeight )
@@ -738,21 +723,33 @@ void monoHiggs::hzz4l(string inputFile,
 
     // get gen particles
     vector<LHParticle> gparticles;
-    hardScatter.get(gparticles);
+    hardScatter.get(gparticles, debug_hardScatter);
     
     vector<LHParticle*> genZ;
     vector<LHParticle*> genL;
     LHParticle* genH  = getZbosons(gparticles, genZ, genL);
 
-    LHParticle* genZ1 = genZ[0];
-    LHParticle* genL1 = genL[0];
-    LHParticle* genL2 = genL[1];
-    
-    LHParticle* genZ2 = genZ[1];
-    LHParticle* genL3 = genL[2];
-    LHParticle* genL4 = genL[3];    
+    LHParticle* genZ1 = 0;
+    LHParticle* genL1 = 0;
+    LHParticle* genL2 = 0;
+    if ( genZ.size() > 0 )
+      {
+	genZ1 = genZ[0];
+	genL1 = genL[0];
+	genL2 = genL[1];
+      }
 
+    LHParticle* genZ2 = 0;
+    LHParticle* genL3 = 0;
+    LHParticle* genL4 = 0;
+    if ( genZ.size() > 1 )
+      {
+	genZ2 = genZ[1];
+	genL3 = genL[2];
+	genL4 = genL[3];    
+      }
     vector<LHParticle> gL;
+    maxlep = min(genL.size(), (size_t)maxlep);
     for(int c=0; c < maxlep; c++) gL.push_back(*genL[c]);
     sort(gL.begin(), gL.end());
     for(int c=0; c < maxlep; c++)
@@ -761,8 +758,10 @@ void monoHiggs::hzz4l(string inputFile,
 	h_genEta[c]->Fill(gL[c].Eta(), smweight);
       }
 
-    h_genZ1mass->Fill(genZ1->M(), smweight);
-    h_genZ2mass->Fill(genZ2->M(), smweight);
+    if ( genZ1 )
+      h_genZ1mass->Fill(genZ1->M(), smweight);
+    if ( genZ2 )
+      h_genZ2mass->Fill(genZ2->M(), smweight);
    
     if ( genH )
       h_genHmass->Fill(genH->M(), smweight);
@@ -816,7 +815,8 @@ void monoHiggs::hzz4l(string inputFile,
 
     // Match gen leptons to reco leptons
     nic::Match match;
-    matchObjects(lepton, genL, match);
+    if ( genL.size() > 0 )
+      matchObjects(lepton, genL, match);
 
     // histogram dR
     for(size_t c=0; c < match.order.size(); c++)
@@ -944,14 +944,17 @@ void monoHiggs::hzz4l(string inputFile,
     sort(jet.begin(), jet.end());
   
     h_njets->Fill(jet.size(), smweight);
-    
-    // compute (Z1 - genZ1).M()
-    // this will be zero for a perfect match
-    // between reco Z1 and gen Z1
-    TLorentzVector dZ1 = Z1 - *genZ1;
-    h_dZ1->Fill(dZ1.M(), smweight);
 
-    if ( diBosonEvent )
+    if ( genZ1 )
+      {
+	// compute (Z1 - genZ1).M()
+	// this will be zero for a perfect match
+	// between reco Z1 and gen Z1
+	TLorentzVector dZ1 = Z1 - *genZ1;
+	h_dZ1->Fill(dZ1.M(), smweight);
+      }
+    
+    if ( diBosonEvent && genZ2 )
       {
 	// compute (Z2 - genZ2).M()
 	TLorentzVector dZ2 = Z2 - *genZ2;
@@ -984,41 +987,53 @@ void monoHiggs::hzz4l(string inputFile,
 
     evtTree.njets     = (int)jet.size();
     evtTree.nleps     = numberLeptons;
-    
-    evtTree.genZ1pt   = genZ1->Pt();
-    evtTree.genZ1eta  = genZ1->Eta();
-    evtTree.genZ1phi  = genZ1->Phi();
-    evtTree.genZ1mass = genZ1->M();
-    
-    evtTree.genZ2pt   = genZ2->Pt();
-    evtTree.genZ2eta  = genZ2->Eta();
-    evtTree.genZ2phi  = genZ2->Phi();
-    evtTree.genZ2mass = genZ2->M();
 
-    evtTree.genl1match= genL1->ID;
-    evtTree.genl1PID  = genL1->PID;
-    evtTree.genl1pt   = genL1->Pt();
-    evtTree.genl1eta  = genL1->Eta();
-    evtTree.genl1phi  = genL1->Phi();
-
-    evtTree.genl2match= genL2->ID;
-    evtTree.genl2PID  = genL2->PID;    
-    evtTree.genl2pt   = genL2->Pt();
-    evtTree.genl2eta  = genL2->Eta();
-    evtTree.genl2phi  = genL2->Phi();
-
-    evtTree.genl3match= genL3->ID;
-    evtTree.genl3PID  = genL3->PID;    
-    evtTree.genl3pt   = genL3->Pt();
-    evtTree.genl3eta  = genL3->Eta();
-    evtTree.genl3phi  = genL3->Phi();
-
-    evtTree.genl4match= genL4->ID;
-    evtTree.genl4PID  = genL4->PID;    
-    evtTree.genl4pt   = genL4->Pt();
-    evtTree.genl4eta  = genL4->Eta();
-    evtTree.genl4phi  = genL4->Phi();    
-   
+    if ( genZ1 )
+      {
+	evtTree.genZ1pt   = genZ1->Pt();
+	evtTree.genZ1eta  = genZ1->Eta();
+	evtTree.genZ1phi  = genZ1->Phi();
+	evtTree.genZ1mass = genZ1->M();
+      }
+    if ( genZ2 )
+      {
+	evtTree.genZ2pt   = genZ2->Pt();
+	evtTree.genZ2eta  = genZ2->Eta();
+	evtTree.genZ2phi  = genZ2->Phi();
+	evtTree.genZ2mass = genZ2->M();
+      }
+    if ( genL1 )
+      {
+	evtTree.genl1match= genL1->ID;
+	evtTree.genl1PID  = genL1->PID;
+	evtTree.genl1pt   = genL1->Pt();
+	evtTree.genl1eta  = genL1->Eta();
+	evtTree.genl1phi  = genL1->Phi();
+      }
+    if ( genL2 )
+      {
+	evtTree.genl2match= genL2->ID;
+	evtTree.genl2PID  = genL2->PID;    
+	evtTree.genl2pt   = genL2->Pt();
+	evtTree.genl2eta  = genL2->Eta();
+	evtTree.genl2phi  = genL2->Phi();
+      }
+    if ( genL3 )
+      {
+	evtTree.genl3match= genL3->ID;
+	evtTree.genl3PID  = genL3->PID;    
+	evtTree.genl3pt   = genL3->Pt();
+	evtTree.genl3eta  = genL3->Eta();
+	evtTree.genl3phi  = genL3->Phi();
+      }
+    if ( genL4 )
+      {
+	evtTree.genl4match= genL4->ID;
+	evtTree.genl4PID  = genL4->PID;    
+	evtTree.genl4pt   = genL4->Pt();
+	evtTree.genl4eta  = genL4->Eta();
+	evtTree.genl4phi  = genL4->Phi();    
+      }
     evtTree.Z1pt   = Z1.Pt();
     evtTree.Z1eta  = Z1.Eta();
     evtTree.Z1phi  = Z1.Phi();

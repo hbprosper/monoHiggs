@@ -6,9 +6,10 @@
 struct monoHiggs
 {
   static void hzz4l(std::string inputFile,
-		    std::string prefix,
-		    int pileup,
+		    std::string sample,
+		    int numberEvents=-1,    // all events
 		    double luminosity=30.0, // 1/fb
-		    int numberEvents=-1);   // all
+		    double xsection=1.0,
+		    int pileup=0);
 };
 #endif
