@@ -674,6 +674,8 @@ void monoHiggs::hzz4l(string inputFile,
   HardScatter hardScatter(branchParticle);
   int passed = 0;
   double totalPassed = 0.0;
+  double totalPassedUnc = 0.0;
+  
   int nd = 0; // number of diboson events
   
   //numberOfEntries = 2;
@@ -860,6 +862,7 @@ void monoHiggs::hzz4l(string inputFile,
     // number of events that pass selection criteria
     passed++;
     totalPassed += eventWeight;
+    totalPassedUnc += eventWeight*eventWeight;
     
     // ----------------------------------------------------------
     // END OF SELECTION
@@ -1204,16 +1207,19 @@ void monoHiggs::hzz4l(string inputFile,
      }
    
    // get total weighted event count
-   double summedWeight = h_nEvent->GetBinContent(1);
-
+   double summedWeight    = h_nEvent->GetBinContent(1);
+   double summedWeightUnc = h_nEvent->GetBinError(1);
 
    char summary[512];
+   totalPassedUnc = sqrt(totalPassedUnc);
    sprintf(summary,
-	   "========================================\n"
-	   "Event count:      %10.2f events\n"
-	   "Selected count:   %10.2f events\n"
-	   "========================================\n",
-	   summedWeight, totalPassed);
+	   "======================================================\n"
+	   "Event count:      %10.2f +/- %-10.2f events\n"
+	   "Selected count:   %10.2f +/- %-10.2f events\n"
+	   "======================================================\n",
+	   summedWeight, summedWeightUnc,
+	   totalPassed, totalPassedUnc);
+   
    cout << summary << endl;   
 
    h_nEvent->Scale(1.0/summedWeight);
