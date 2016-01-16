@@ -670,16 +670,16 @@ void monoHiggs::hzz4l(string inputFile,
   // ===> START
   // -----------------------------------------
   // -----------------------------------------
-  bool debug_hardScatter = true;
+  //bool debug_hardScatter = true;
   HardScatter hardScatter(branchParticle);
   int passed = 0;
   double totalPassed = 0.0;
   int nd = 0; // number of diboson events
   
-  numberOfEntries = 2;
+  //numberOfEntries = 2;
   
   for(Int_t entry = 0; entry < numberOfEntries; entry++){
-    bool printMe = entry % 1 == 0;
+    bool printMe = entry % 100 == 0;
     
     if ( printMe )
       std::cout << "\t=> processing event "
@@ -723,7 +723,7 @@ void monoHiggs::hzz4l(string inputFile,
 
     // get gen particles
     vector<LHParticle> gparticles;
-    hardScatter.get(gparticles, debug_hardScatter);
+    //hardScatter.get(gparticles, debug_hardScatter);
     
     vector<LHParticle*> genZ;
     vector<LHParticle*> genL;
@@ -884,6 +884,7 @@ void monoHiggs::hzz4l(string inputFile,
     LHParticle Z2;
     LHParticle L3;
     LHParticle L4;
+    LHParticle H;
     if ( diBosonEvent )
       {
 	Z2 = dilepton[1];
@@ -895,7 +896,7 @@ void monoHiggs::hzz4l(string inputFile,
 	h_Z2mass->Fill(Z2.M(), smweight);
 
 	// compute 4-lepton 4-vector
-	LHParticle H = Z1 + Z2;
+	H = Z1 + Z2;
  
 	h_Hmass->Fill(H.M(), smweight);
 	h_HmassLarge->Fill(H.M(), smweight);	
@@ -1043,6 +1044,11 @@ void monoHiggs::hzz4l(string inputFile,
     evtTree.Z2eta  = Z2.Eta();
     evtTree.Z2phi  = Z2.Phi();
     evtTree.Z2mass = Z2.M();
+
+    evtTree.Hpt    = H.Pt();
+    evtTree.Heta   = H.Eta();
+    evtTree.Hphi   = H.Phi();
+    evtTree.Hmass  = H.M();    
 
     evtTree.l1match= L1.ID;
     evtTree.l1PID  = L1.PID;

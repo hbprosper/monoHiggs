@@ -58,6 +58,11 @@ struct Shrub
   float	Z2phi;
   float	Z2mass;
 
+  float	Hpt;
+  float	Heta;
+  float	Hphi;
+  float	Hmass;  
+
   int   l1match;
   int   l1PID;
   float	l1pt;
@@ -181,6 +186,11 @@ struct Shrub
     tree->Branch("Z2eta", 	&Z2eta, 	"Z2eta/F");
     tree->Branch("Z2phi", 	&Z2phi, 	"Z2phi/F");
     tree->Branch("Z2mass", 	&Z2mass, 	"Z2mass/F");
+
+    tree->Branch("Hpt", 	&Hpt, 	        "Hpt/F");
+    tree->Branch("Heta", 	&Heta, 	        "Heta/F");
+    tree->Branch("Hphi", 	&Hphi, 	        "Hphi/F");
+    tree->Branch("Hmass", 	&Hmass, 	"Hmass/F");    
 
     tree->Branch("l1match", 	&l1match, 	"l1match/I");
     tree->Branch("l1PID", 	&l1PID, 	"l1PID/I");    
