@@ -263,10 +263,12 @@ findDileptons(vector<LHParticle>& lepton,
   vector<DiLepton> candidate;
   for(size_t k = 0; k < lepton.size(); k++)
     {
-      LHParticle& pk = lepton[k];
+      LHParticle& pk = lepton[k]; // get a reference (an alias), not a copy
       for(size_t j = k+1; j < lepton.size(); j++)
 	{
-	  LHParticle& pj = lepton[j];
+	  LHParticle& pj = lepton[j]; // get a reference, not a copy
+	  // require charges to sum to zero
+	  // and flavors to be the same
 	  if ( !( (pk.PID + pj.PID)==0) ) continue;
 	  
 	  // we have oppositely charged same flavor leptons
@@ -280,38 +282,42 @@ findDileptons(vector<LHParticle>& lepton,
     }
   if ( candidate.size() == 0 ) return;
 
-    // sort dilepton candidates in increasing delta(|mass-ZMASS|)
-    // and take Z1 to be the first dilepton
-    sort(candidate.begin(), candidate.end());    
-    dilepton.push_back(candidate.front());
+  // we have one or more opposite sign same flavor dileptons
+  
+  // sort dilepton candidates in increasing delta(|mass-ZMASS|)
+  // and take Z1 to be the first dilepton
+  sort(candidate.begin(), candidate.end());    
+  dilepton.push_back(candidate.front());
+  
+  // look for another Z candidate. if more than one, pick the
+  // one with the highest pT among those that are further
+  // than DR = 0.05 from Z1.
+  //
+  // But, if final state is 2e 2mu, make sure dileptons
+  // differ in flavor
     
-    // look for another Z candidate. if more than one, pick the
-    // one with the highest pT among those that are further
-    // than DR = 0.05 from Z1.
-    //
-    // if final state is 2e 2mu, make sure dileptons
-    // differ in flavor
-    
-    double largestPT = -1;
-    int index = -1;
+  double largestPT = -1;
+  int index = -1;
+  
+  // get the unique identifiers of leptons that comprise Z1
+  int L1UID = dilepton[0].L1.UID;
+  int L2UID = dilepton[0].L2.UID;    
+  
+  // be sure to skip first dilepton, which is Z1    
+  for(size_t k = 1; k < candidate.size(); k++)
+    {
+      // make sure current candidate does not share a lepton
+      // with Z1
+      if ( candidate[k].L1.UID == L1UID ) continue;
+      if ( candidate[k].L1.UID == L2UID ) continue;
+      
+      if ( candidate[k].L2.UID == L1UID ) continue;
+      if ( candidate[k].L2.UID == L2UID ) continue;	
 
-    // get unique identifiers of leptons that comprise Z1
-    int L1UID = dilepton[0].L1.UID;
-    int L2UID = dilepton[0].L2.UID;    
-    
-    // be sure to skip first dilepton, which is Z1    
-    for(size_t k = 1; k < candidate.size(); k++)
-      {
-	// make sure current candidate does not share a lepton
-	// with Z1
-	if ( candidate[k].L1.UID == L1UID ) continue;
-	if ( candidate[k].L1.UID == L2UID ) continue;
-	
-	if ( candidate[k].L2.UID == L1UID ) continue;
-	if ( candidate[k].L2.UID == L2UID ) continue;	
-
-	// For 2e2mu need 2nd dilepton to differ in flavor from the first
-	if ( finalState == k2E2MU )
+      // current candidate does not share a lepton with Z1
+      
+      // For 2e2mu, the 2nd dilepton must differ in flavor from the first
+      if ( finalState == k2E2MU )
 	  {
 	    bool sameFlavor =
 	      abs(candidate[k].L1.PID) ==
@@ -319,21 +325,23 @@ findDileptons(vector<LHParticle>& lepton,
 	    if ( sameFlavor ) continue;
 	  }
 
-	double dR = nic::deltaR(candidate[k].Eta(), candidate[k].Phi(),
-				candidate[0].Eta(), candidate[0].Phi());
-	if ( !(dR > 0.05) ) continue;
-	
-	if ( candidate[k].Pt() > largestPT )
-	  {
-	    largestPT = candidate[k].Pt();
-	    index = k;
-	  }
-      }
-    if ( index > -1 ) dilepton.push_back(candidate[index]);
+      // require dileptons to be further apart than DR = 0.05
+      double dR = nic::deltaR(candidate[k].Eta(), candidate[k].Phi(),
+			      candidate[0].Eta(), candidate[0].Phi());
+      if ( !(dR > 0.05) ) continue;
+
+      if ( candidate[k].Pt() > largestPT )
+	{
+	  largestPT = candidate[k].Pt();
+	  index = k;
+	}
+    }
+  // If index > -1, then we have found a 2nd dilepton.
+  if ( index > -1 ) dilepton.push_back(candidate[index]);
 }
 // ---------------------------------------------------------------------------
 // inputFile    input file (with .root extension) or a filelist
-// finalstate       e.g.: "s_4mu" or "b_4mu"
+// finalstate   e.g.: "s_4mu" or "b_4mu"
 // pileup       mean number of pileup events
 // luminosity   integrated luminosity
 // numberEvents obvious, no?!
@@ -411,8 +419,7 @@ void monoHiggs::hzz4l(string inputFile,
     }
   catch (...)
     {
-      cout << endl << "** can't load libDelphes" << endl;
-      exit(0);
+      nic::ciao("can't load libDelphes");
     }
   
   // make sure plots and histos directories exist
@@ -670,7 +677,7 @@ void monoHiggs::hzz4l(string inputFile,
   // ===> START
   // -----------------------------------------
   // -----------------------------------------
-  //bool debug_hardScatter = true;
+  bool debug_hardScatter = false;
   HardScatter hardScatter(branchParticle);
   int passed = 0;
   double totalPassed = 0.0;
@@ -681,7 +688,7 @@ void monoHiggs::hzz4l(string inputFile,
   //numberOfEntries = 2;
   
   for(Int_t entry = 0; entry < numberOfEntries; entry++){
-    bool printMe = entry % 100 == 0;
+    bool printMe = entry % 500 == 0;
     
     if ( printMe )
       std::cout << "\t=> processing event "
@@ -725,7 +732,7 @@ void monoHiggs::hzz4l(string inputFile,
 
     // get gen particles
     vector<LHParticle> gparticles;
-    //hardScatter.get(gparticles, debug_hardScatter);
+    hardScatter.get(gparticles, debug_hardScatter);
     
     vector<LHParticle*> genZ;
     vector<LHParticle*> genL;
@@ -754,6 +761,7 @@ void monoHiggs::hzz4l(string inputFile,
     maxlep = min(genL.size(), (size_t)maxlep);
     for(int c=0; c < maxlep; c++) gL.push_back(*genL[c]);
     sort(gL.begin(), gL.end());
+    
     for(int c=0; c < maxlep; c++)
       {
 	h_genPT[c]->Fill(gL[c].Pt(), smweight);

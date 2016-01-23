@@ -17,7 +17,10 @@ using namespace std;
 
 HardScatter::HardScatter(TClonesArray* particles_)
   : particles(particles_),
-    debug(false)
+    numberParticles(0),
+    unreliable(false),
+    debug(false),
+    warn(true)
   {}
 
 HardScatter::~HardScatter(){}
@@ -46,6 +49,23 @@ void HardScatter::printAt(int ii)
 void HardScatter::get(vector<LHParticle>& plist, bool debug_)
 {
   if ( !particles ) return;
+  if ( unreliable )
+    {
+      if ( warn )
+	{
+	  warn = false;
+	  cout << endl
+	       << "\t******************************************************"
+	       << endl
+	       << "\t** WARNING: mother/daughter indices are unreliable ***"
+	       << endl
+	       << "\t** Unable to extract hard-scattering event tree    ***"
+	       << endl
+	       << "\t******************************************************"
+	       << endl << endl;
+	}
+      return;
+    }
   
   debug = debug_;
   // first find particles with two mothers,
@@ -53,9 +73,18 @@ void HardScatter::get(vector<LHParticle>& plist, bool debug_)
   // then climb the decay tree, if possible.
   // this may not be possible if the relevant
   // daughter/mother relationship is screwed up
-  for(int c=0; c < particles->GetEntriesFast(); c++)
+  numberParticles = particles->GetEntriesFast();
+  for(int c=0; c < numberParticles; c++)
     {
       GenParticle* p = static_cast<GenParticle*>(particles->At(c));
+      if ( !p )
+	{
+	  if ( debug )
+	    cout << "\t*** no particle at position "<< c << " ***" << endl;
+	  unreliable = true;
+	  return;
+	}
+      
       if ( p->Status != 22 ) continue;
       if ( p->M1 == p->M2 )  continue;
       if ( p->M1 < 0 )       continue;
@@ -75,12 +104,25 @@ void HardScatter::get(vector<LHParticle>& plist, bool debug_)
       if ( ID < 0 )
 	{
 	  if ( debug )
-	    cout << "\t*** can't find status=62 mother" << endl;
+	    cout << "\t*** get: can't find status=62 mother" << endl;
+	  unreliable = true;
 	  return;
 	}
-      
+      if ( ID > numberParticles-1 )
+	{
+	  if ( debug )
+	    cout << "\t*** get: mother/daughter indices unreliable" << endl;
+	  unreliable = true;
+	  return;
+	}
       p = static_cast<GenParticle*>(particles->At(ID));
-      if ( p == 0 ) return;
+      if ( !p )
+	{
+	  if ( debug )
+	    cout << "\t*** no particle at position "<< ID << " ***" << endl;
+	  unreliable = true;
+	  return;
+	}
 
       // found mother particle with status = 62, now
       // climb decay tree
@@ -112,11 +154,13 @@ HardScatter::findMother(GenParticle* mother, int& pos, int depth)
   depth++;
   if ( depth > 100 )
     {
+      unreliable = true;
       pos = -1; // this really shouldn't happen!
       return;
     }
   if ( !mother )
     {
+      unreliable = true;
       pos = -2; // failed
       return;
     }
@@ -127,9 +171,23 @@ HardScatter::findMother(GenParticle* mother, int& pos, int depth)
   
   for(int c = mother->D1; c <= mother->D2; c++)
     {
-      printAt(c);
+      if ( c > numberParticles-1 )
+	{
+	  if ( debug )
+	    cout << "\t*** findMother: mother/daughter indices unreliable"
+		 << endl;
+	  unreliable = true;
+	  pos = -3;
+	  return;
+	}      
       GenParticle* d = static_cast<GenParticle*>(particles->At(c));
-      if ( d == 0 ) continue;
+      if ( debug ) printAt(c);
+      if ( d == 0 )
+	{
+	  unreliable = true;
+	  pos =-4; // failed
+	  return;
+	}
       
       pos = c;
       if ( d->PID == mother->PID )
@@ -166,6 +224,14 @@ HardScatter::climbTree(vector<LHParticle>& plist,
   // loop over daughters
   for(int c = mother->D1; c <= mother->D2; c++)
     {
+      if ( c > numberParticles-1 )
+	{
+	  if ( debug )
+	    cout << "\t*** climbTree: mother/daughter indices unreliable"
+		 << endl;
+	  unreliable = true;
+	  continue;
+	}            
       GenParticle* d = static_cast<GenParticle*>(particles->At(c));
       climbTree(plist, d, c, ID, depth);
     }

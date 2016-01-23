@@ -23,8 +23,11 @@ class HardScatter
   
  private:
   TClonesArray* particles;
+  int  numberParticles;
+  bool unreliable;
   bool debug;
-
+  bool warn;
+  
   void printAt(int ID);
   
   void findMother(GenParticle* mother, int& pos, int depth=0);
