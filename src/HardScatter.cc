@@ -37,7 +37,7 @@ void HardScatter::printAt(int ii)
   GenParticle* p = static_cast<GenParticle*>(particles->At(ii));
   if ( p )
     sprintf(record,"%4d %8d %-10s %8.2f %8.3f %8.3f %4d %4d %4d %4d %4d",
-	    ii, p->PID, nic::particleName(p->PID).c_str(),
+	    ii, p->PID, LHParticle::name(p->PID).c_str(),
 	    p->PT, p->Eta, p->Phi,
 	    p->M1, p->M2,
 	    p->D1, p->D2, p->Status);

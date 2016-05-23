@@ -187,7 +187,7 @@ listParticles(TClonesArray* particles)
     {
       GenParticle* p = static_cast<GenParticle*>(particles->At(i));
       sprintf(record,"%4d %8d %-10s %8.2f %8.3f %8.3f %4d %4d %4d %4d %4d",
-	      i, p->PID, nic::particleName(p->PID).c_str(),
+	      i, p->PID, LHParticle::name(p->PID).c_str(),
 	      p->PT, p->Eta, p->Phi,
 	      p->M1, p->M2,
 	      p->D1, p->D2, p->Status);

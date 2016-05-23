@@ -18,6 +18,8 @@ struct LHParticle : public TLorentzVector
 	     double PT, double Eta, double Phi, double Mass=0);
   LHParticle(const LHParticle& p);
   ~LHParticle();
+
+  static std::string name(int pdgid);
   
   bool        operator<(const LHParticle& p) const;
   LHParticle& operator=(const LHParticle& p);

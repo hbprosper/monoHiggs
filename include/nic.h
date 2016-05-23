@@ -39,8 +39,6 @@ struct nic
   static std::string nameonly(std::string filename);
   ///
   static std::string shell(std::string cmd);
-  /// Return particle name given PDG id
-  static std::string particleName(int pdgid);
   ///
   static double deltaPhi(double phi1, double phi2);
   ///
