@@ -14,11 +14,17 @@
 #       write flat ntuples.
 #
 # Created: 25-Oct-2015 Harrison B. Prosper
+# Updated: 07-Oct-2016 HBP - slight generalization (allow setting of default
+#                      treename)
 #-----------------------------------------------------------------------------
 import os, sys
 from string import *
 from time import ctime
 #-----------------------------------------------------------------------------
+def nameonly(s):
+    import posixpath
+    return posixpath.splitext(posixpath.split(s)[1])[0]
+
 TEMPLATE = '''#ifndef %(structname)s_H
 #define %(structname)s_H
 
@@ -38,8 +44,8 @@ struct %(structname)s
   {}
 
   %(structname)s(std::string filename,
-  %(tab1)sstd::string treename="Analysis",
-  %(tab1)sstd::string title="Analysis",
+  %(tab1)sstd::string treename="%(treename)s",
+  %(tab1)sstd::string title="%(treename)s",
   %(tab1)sfloat clearvalue_=0)
     : file(0), tree(0), clearvalue(clearvalue_)
   {
@@ -47,9 +53,9 @@ struct %(structname)s
   }
 
   void Open(std::string filename,
-            std::string treename="Analysis",
-            std::string title="Analysis",
-            float clearvalue_=0)  
+            std::string treename,
+            std::string title,
+            float clearvalue_)  
   {
     file = 0;
     tree = 0;
@@ -97,21 +103,26 @@ def main():
     if argc < 1:
         sys.exit('''
     Usage:
-       mktstruct.py variables-file
+       mktstruct.py variables-file [tree-name=Analysis]
         ''')
 
     # get name of file containing variables
     varfile = argv[0]
     if not os.path.exists(varfile):
         sys.exit("** can't open file %s" % varfile)
+
+    treename = "Analysis"
+    if len(argv) > 1:
+        treename = argv[1]
         
-    name = split(varfile, '.')[0]
+    name = nameonly(varfile)
     structname = capitalize(name)
     names = {'structname': structname,
              'date': ctime(),
-             'tab1': ' '*len(structname)+' '
+             'tab1': ' '*len(structname)+' ',
+             'treename': treename
              }
-
+        
     # read file containing  variables
     records = filter(lambda x: (x[0] != '#') or (x[0] != "/"),
                      filter(lambda x: x != '',

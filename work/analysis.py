@@ -17,7 +17,7 @@ def main():
     if len(sys.argv) > 4: 
         luminosity = float(sys.argv[4])
     else:
-        luminosity = 30.0 # 1/fb
+        luminosity = 100.0 # 1/fb
 
     if len(sys.argv) > 5: 
         xsection = float(sys.argv[5])
@@ -39,7 +39,7 @@ try:
         exit('''
     Usage: ./analyis.py Delphes-Root-file sample
                         [nevents=-1]
-                        [luminosity=30/fb]
+                        [luminosity=100/fb]
                         [xsection=1fb]
                         [pileup=0]
         
